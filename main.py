@@ -35,10 +35,10 @@ def login(username, passwd):
 ChapterInfo = collections.namedtuple('ChapterInfo', ('id', 'name', 'vid'))
 
 
-def get_next_chapter():
+def get_next_chapter(class_name):
     logging.info('Getting next chapter info...')
     resp = session.post('http://xuexiapi.xuechebu.com/videoApiNew/SpPlay/GetChapterInfo',
-                        data={'km': '1'}).json()
+                        data={'km': class_name}).json()
     assert resp['code'] == 0, resp.get('message', 'Unknown')
     chapter = ChapterInfo(id=resp['data']['ID'],
                           name=f"{resp['data']['KSMC']}-{resp['data']['ZJMC']}",
@@ -69,6 +69,7 @@ def report_progress(chapter):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('username')
+    parser.add_argument('-c', '--class_name', default='1', help='Which class (1 or 4) are you taking')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -78,7 +79,7 @@ if __name__ == '__main__':
 
     last_chapter = None
     while True:
-        chapter = get_next_chapter()
+        chapter = get_next_chapter(args.class_name)
         if last_chapter and chapter.id == last_chapter.id:
             logging.error('Already finished, return')
             break
